@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import axios from 'axios';
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Link } from 'react-router-dom';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const login = async () => {
+  const loginSubmit = async () => {
     console.log('Login attempt \nEmail:', email, '\nPassword:', password);
 
     axios.post('api/user/login', {
@@ -23,22 +24,7 @@ function Login() {
     });
   }
 
-  const register = async () => {
-    console.log('(Late) Registration attempt \nEmail:', email, '\nPassword:', password);
-
-    axios.post('api/user/register', {
-      email: email,
-      password: password
-    })
-    .then(response => {
-      console.log(response.data);
-    })
-    .catch(error => {
-      console.error(error);
-    });
-  }
-
-  const logout = async () => {
+  const logoutSubmit = async () => {
     axios.post('api/user/logout')
     .then(response => {
       console.log(response.data);
@@ -67,9 +53,11 @@ function Login() {
                 </div>
             </div>
             <footer className='flex flex-col space-y-3 justify-between'>
-                <Button onClick={login}>Login</Button>
-                <Button onClick={register} variant="outline">Create an account</Button>
-                <Button onClick={logout} variant="link">Password forgotten?</Button>
+                <Button onClick={loginSubmit}>Login</Button>
+                <Button variant='outline' asChild>
+                  <Link to='/register'>Create a new account</Link>
+                </Button>
+                <Button onClick={logoutSubmit} variant="link">Password forgotten?</Button>
             </footer>
         </div>
       </div>
