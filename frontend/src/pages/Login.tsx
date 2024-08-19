@@ -40,7 +40,7 @@ function Login() {
   return (
     <>
       <div className='flex flex-col items-center justify-center min-h-screen'>
-        <div className='space-y-6 max-w-screen-sm'>
+        <div className='space-y-6 max-w-sm w-full mx-4'>
             <header>
                 <h1>Scribble</h1>
                 <p className="text-sm text-slate-500">Welcome back! Please login to start Scribbling.</p>
@@ -60,9 +60,11 @@ function Login() {
                 <Button variant='outline' asChild>
                   <Link to='/register'>Create a new account</Link>
                 </Button>
-                <Button variant="link">
-                  <Link to='/password'>Password forgotten?</Link>
-                </Button>
+                <div className='flex justify-center items-center h-10'>
+                  <Button variant="link" className='w-fit h-fit p-0'>
+                    <Link to='/password'>Password forgotten?</Link>
+                  </Button>
+                </div>
             </footer>
         </div>
       </div>

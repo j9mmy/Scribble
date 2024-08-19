@@ -26,7 +26,7 @@ function PasswordForgotten() {
     return (
         <>
             <div className='flex flex-col items-center justify-center min-h-screen'>
-                <div className='space-y-6 max-w-screen-sm'>
+                <div className='space-y-6 max-w-sm w-full mx-4'>
                     <header>
                         <h2>Password forgotten?</h2>
                         <p className="text-sm text-slate-500">Enter your email to resume using Scribble.</p>

@@ -60,7 +60,7 @@ function Register() {
   return (
     <>
       <div className='flex flex-col items-center justify-center min-h-screen'>
-        <div className='flex flex-col gap-7 max-w-sm'>
+        <div className='flex flex-col gap-7 max-w-sm w-full mx-4'>
             <header className='space-y-1'>
                 <h2>Create account</h2>
                 <p className="text-sm text-slate-500">Welcome to Scribble! Complete registration to start Scribbling.</p>
@@ -75,7 +75,7 @@ function Register() {
                       name="firstName"
                       render={({ field }) => (
                           <FormItem>
-                            <Label>First Name</Label>
+                            <Label>First name</Label>
                             <FormControl>
                               <Input placeholder='First name' {...field} />
                             </FormControl>
@@ -88,7 +88,7 @@ function Register() {
                       name="lastName"
                       render={({ field }) => (
                           <FormItem>
-                            <Label>Last Name</Label>
+                            <Label>Last name</Label>
                             <FormControl>
                               <Input placeholder='Last name' {...field} />
                             </FormControl>
