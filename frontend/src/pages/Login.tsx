@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import axios from 'axios';
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Link } from 'react-router-dom';
@@ -18,6 +18,7 @@ function Login() {
     })
     .then(response => {
       console.log(response.data);
+      logoutSubmit();
     })
     .catch(error => {
       console.error(error);
@@ -25,6 +26,8 @@ function Login() {
   }
 
   const logoutSubmit = async () => {
+    console.log('Logging current user out...')
+
     axios.post('api/user/logout')
     .then(response => {
       console.log(response.data);
@@ -57,7 +60,9 @@ function Login() {
                 <Button variant='outline' asChild>
                   <Link to='/register'>Create a new account</Link>
                 </Button>
-                <Button onClick={logoutSubmit} variant="link">Password forgotten?</Button>
+                <Button variant="link">
+                  <Link to='/password'>Password forgotten?</Link>
+                </Button>
             </footer>
         </div>
       </div>
