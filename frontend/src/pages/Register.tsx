@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { z } from  'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from "react-hook-form"
+import { Link } from 'react-router-dom';
 
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -22,11 +23,29 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form"
-import { Link } from 'react-router-dom';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Loader2 } from 'lucide-react';
 
+interface Role {
+  id: string,
+  name: string,
+  normalizedName: string,
+  concurrencyStamp?: any,
+}
 
 function Register() {
-  const [roles, setRoles] = useState(["Nurse", "Scheduler", "Administrator"])
+  const [roles, setRoles] = useState<Role[]>([])
+
+  useEffect(() => {
+    axios.get('api/role')
+      .then(response => {
+        console.log(response);
+        setRoles(response.data);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }, []);
 
   const formSchema = z.object({
     firstName : z.string().min(1, "First name is required"),
@@ -136,18 +155,23 @@ function Register() {
                       render={({ field }) => (
                           <FormItem>
                             <Label>Role</Label>
-                            <Select onValueChange={field.onChange}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder='Select your role' />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {roles.map((role) =>
-                                  <SelectItem key={role} value={role}>{role}</SelectItem>
-                                )}
-                              </SelectContent>
-                            </Select>
+                            {roles.length == 0 ? (
+                              <Skeleton className='w-full h-10' />
+                            )
+                            : (
+                              <Select onValueChange={field.onChange}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder='Select your role' />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {roles.map((role) =>
+                                    <SelectItem key={role.id} value={role.name}>{role.name}</SelectItem>
+                                  )}
+                                </SelectContent>
+                              </Select>
+                            )}
                             <FormMessage />
                           </FormItem>
                         )}

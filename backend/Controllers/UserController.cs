@@ -11,13 +11,13 @@ using System;
 [Route("user")]
 public class UserController : ControllerBase
 {
-    private readonly AppDbContext DbContext;
+    private readonly AppDbContext _dbContext;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
 
     public UserController(AppDbContext dbContext, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
     {
-        DbContext = dbContext;
+        _dbContext = dbContext;
         _userManager = userManager;
         _signInManager = signInManager;
     }
@@ -25,7 +25,7 @@ public class UserController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetUser(string id)
     {
-        var user = await DbContext.Users.FindAsync(id);
+        var user = await _dbContext.Users.FindAsync(id);
         if (user == null)
         {
             return NotFound();
@@ -70,11 +70,11 @@ public class UserController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(string id)
     {
-        var user = await DbContext.Users.FindAsync(id);
+        var user = await _dbContext.Users.FindAsync(id);
         if (user == null) return NotFound();
         
-        DbContext.Users.Remove(user);
-        await DbContext.SaveChangesAsync();
+        _dbContext.Users.Remove(user);
+        await _dbContext.SaveChangesAsync();
 
         return Ok();
     }
@@ -88,8 +88,9 @@ public class LoginRequest
 
 public class RegisterRequest
 {
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
     public string Email { get; set; }
     public string Password { get; set; }
-
-    // TODO: Add custom user properties
+    public string Role { get; set; }
 }
