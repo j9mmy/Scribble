@@ -3,7 +3,7 @@ import axios from 'axios';
 import { z } from  'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from "react-hook-form"
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -35,6 +35,8 @@ interface Role {
 
 function Register() {
   const [roles, setRoles] = useState<Role[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
 
   useEffect(() => {
     axios.get('api/role')
@@ -71,9 +73,24 @@ function Register() {
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
+    setIsLoading(true)
 
-    // TODO: Implement registration logic
+    axios.post('api/user/register', {
+      firstName: values.firstName,
+      lastName: values.lastName,
+      username: values.email, // We don't work with usernames, but it is a requirement for the database.
+      email: values.email,
+      password: values.password,
+      role: values.role,
+    })
+    .then(response => {
+      console.log(response)
+      navigate('/login')
+    })
+    .catch(error => {
+      console.log(error)
+    })
+    .finally(() => setIsLoading(false))
   }
 
   return (
@@ -179,7 +196,7 @@ function Register() {
                     </div>
 
                     <div className='flex flex-col gap-3.5'>
-                      <Button type="submit">Create account</Button>
+                      <Button disabled={isLoading} type="submit">{isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Create account</Button>
                       <Button type='button' variant="outline" asChild>
                         <Link to='/'>Already have an account?</Link>
                       </Button>
