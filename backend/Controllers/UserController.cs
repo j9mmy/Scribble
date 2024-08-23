@@ -1,46 +1,43 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Identity;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System;
+using Scribble.Models;
+using Scribble.Services;
 
 [ApiController]
 [Route("user")]
 public class UserController : ControllerBase
 {
-    private readonly AppDbContext _dbContext;
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
-
-    public UserController(AppDbContext dbContext, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, RoleManager<IdentityRole> roleManager)
+    private readonly IUserService _userService;
+    private readonly IAuthenticationService _authenticationService;
+    
+    public UserController(IUserService userService, IAuthenticationService authenticationService)
     {
-        _dbContext = dbContext;
-        _userManager = userManager;
-        _signInManager = signInManager;
-        _roleManager = roleManager;
+        _userService = userService;
+        _authenticationService = authenticationService;
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetUser(string id)
+    public async Task<IActionResult> Get(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
-        if (user == null) return NotFound();
+        var user = await _userService.GetUserByIdAsync(id);
+        if (user == null) return NotFound("No user was found");
 
         return Ok(user);
+    }
+
+    [HttpGet]
+    public async Task <IActionResult> Get()
+    {
+        var users = await _userService.GetUsersAsync();
+        if (users == null) return NotFound("No users were found");
+
+        return Ok(users);
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var user = await _userManager.FindByEmailAsync(request.Email);
-        if (user == null) return NotFound("User does not exist");
-
-        var result = await _signInManager.PasswordSignInAsync(user, request.Password, false, false);
-        if (!result.Succeeded) return Unauthorized("Incorrect password");
+        var result = await _authenticationService.LoginUserAsync(request);
+        if (!result.Succeeded) return BadRequest("Invalid login attempt");
 
         return Ok("User logged in succesfully");
     }
@@ -48,68 +45,27 @@ public class UserController : ControllerBase
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
     {
-        await _signInManager.SignOutAsync();
+        await _authenticationService.SignOutUserAsync();
         return Ok("User logged out succesfully");
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    public async Task<IActionResult> Create([FromBody] RegisterRequest request)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var user = new ApplicationUser
-        {
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            UserName = request.Username,
-            Email = request.Email,
-        };
-
-        var resultUserCreation = await _userManager.CreateAsync(user, request.Password);
-        if (!resultUserCreation.Succeeded) return BadRequest(resultUserCreation.Errors);
-
-        var role = await _roleManager.FindByNameAsync(request.Role);
-        if (role == null)
-        { 
-            await _userManager.DeleteAsync(user);
-            return NotFound("Specified role was not found");
-        }
-
-        var resultRoleAssign = await _userManager.AddToRoleAsync(user, request.Role);
-        if (!resultRoleAssign.Succeeded) 
-        {
-            await _userManager.DeleteAsync(user);
-            return BadRequest(resultRoleAssign.Errors);
-        }
+        var result = await _authenticationService.RegisterUserAsync(request);
+        if (!result.Succeeded) return BadRequest(result.Errors);
 
         return Ok("User created succesfully");
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteUser(string id)
+    public async Task<IActionResult> Delete(string id)
     {
-        var user = await _userManager.FindByIdAsync(id);
-        if (user == null) return NotFound();
-        
-        _dbContext.Users.Remove(user);
-        await _dbContext.SaveChangesAsync();
+        var result = await _userService.DeleteUserAsync(id);
+        if (!result.Succeeded) return BadRequest(result.Errors);
 
-        return Ok();
+        return Ok("User deleted succesfully");
     }
-}
-
-public class LoginRequest
-{
-    public string Email { get; set; }
-    public string Password { get; set; }
-}
-
-public class RegisterRequest
-{
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public string Username { get; set; }
-    public string Email { get; set; }
-    public string Password { get; set; }
-    public string Role { get; set; }
 }

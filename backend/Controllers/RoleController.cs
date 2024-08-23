@@ -1,53 +1,50 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
+using Scribble.Services;
 
 [ApiController]
 [Route("role")]
 public class RoleController : ControllerBase
 {
-    private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly IRoleService _roleService;
 
-    public RoleController(RoleManager<IdentityRole> roleManager)
+    public RoleController(IRoleService roleService)
     {
-        _roleManager = roleManager;
+        _roleService = roleService;
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetRoles()
+    public async Task<IActionResult> Get()
     {
-        var roles = await _roleManager.Roles.ToListAsync();
-        if (roles == null) return NotFound();
+        var roles = await _roleService.GetRolesAsync();
+        if (roles == null) return NotFound("No roles were found");
 
         return Ok(roles);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> AddRole(string role)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Get(string id)
     {
-        if (role == null) return BadRequest("Invalid role received");
+        var role = await _roleService.GetRoleByIdAsync(id);
+        if (role == null) return NotFound("No role was found");
 
-        var roleExists = await _roleManager.RoleExistsAsync(role);
-        if (roleExists) return BadRequest("Role already exists");
+        return Ok(role);
+    }
 
-        var result = await _roleManager.CreateAsync(new IdentityRole(role));
-        if (result.Succeeded) return Ok("Role successfully created");
+    [HttpPost]
+    public async Task<IActionResult> Create(string roleName)
+    {
+        var result = await _roleService.CreateRoleAsync(roleName);
+        if (result.Succeeded) return Ok("Role created successfully");
 
-        return BadRequest("Failed to create new role");
+        return BadRequest("Role creation failed");
     }
 
     [HttpDelete]
-    public async Task<IActionResult> DeleteRole(string role)
+    public async Task<IActionResult> Delete(string roleName)
     {
-        if (role == null) return BadRequest("Invalid role received");
+        var result = await _roleService.DeleteRoleAsync(roleName);
+        if (result.Succeeded) return Ok("Role deleted successfully");
 
-        var existingRole = await _roleManager.FindByNameAsync(role);
-        if (existingRole == null) return BadRequest("Entered role does not exist");
-
-        var result = await _roleManager.DeleteAsync(existingRole);
-        if (result.Succeeded) return Ok("Role successfully deleted");
-
-        return BadRequest("Failed to delete role");
+        return BadRequest("Role deletion failed");
     }
 }
