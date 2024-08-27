@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Scribble.Models;
 
 public class AppDbContext : IdentityDbContext<ApplicationUser>
 {
@@ -8,8 +8,3 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
 }
 
-public class ApplicationUser : IdentityUser
-{
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-}

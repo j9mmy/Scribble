@@ -1,95 +1,71 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Identity;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System;
+using Scribble.Models;
+using Scribble.Services;
 
 [ApiController]
 [Route("user")]
 public class UserController : ControllerBase
 {
-    private readonly AppDbContext DbContext;
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly SignInManager<ApplicationUser> _signInManager;
-
-    public UserController(AppDbContext dbContext, UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+    private readonly IUserService _userService;
+    private readonly IAuthenticationService _authenticationService;
+    
+    public UserController(IUserService userService, IAuthenticationService authenticationService)
     {
-        DbContext = dbContext;
-        _userManager = userManager;
-        _signInManager = signInManager;
+        _userService = userService;
+        _authenticationService = authenticationService;
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetUser(string id)
+    public async Task<IActionResult> Get(string id)
     {
-        var user = await DbContext.Users.FindAsync(id);
-        if (user == null)
-        {
-            return NotFound();
-        }
+        var user = await _userService.GetUserByIdAsync(id);
+        if (user == null) return NotFound("No user was found");
+
         return Ok(user);
+    }
+
+    [HttpGet]
+    public async Task <IActionResult> Get()
+    {
+        var users = await _userService.GetUsersAsync();
+        if (users == null) return NotFound("No users were found");
+
+        return Ok(users);
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var user = await _userManager.FindByEmailAsync(request.Email);
-        if (user == null) return NotFound();
+        var result = await _authenticationService.LoginUserAsync(request);
+        if (!result.Succeeded) return BadRequest("Invalid login attempt");
 
-        var result = await _signInManager.PasswordSignInAsync(user, request.Password, false, false);
-        if (!result.Succeeded) return Unauthorized();
-
-        return Ok();
+        return Ok("User logged in succesfully");
     }
 
     [HttpPost("logout")]
     public async Task<IActionResult> Logout()
     {
-        await _signInManager.SignOutAsync();
-        return Ok();
+        await _authenticationService.SignOutUserAsync();
+        return Ok("User logged out succesfully");
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    public async Task<IActionResult> Create([FromBody] RegisterRequest request)
     {
-        var user = new ApplicationUser
-        {
-            UserName = request.Email,
-            Email = request.Email
-        };
+        if (!ModelState.IsValid) return BadRequest(ModelState);
 
-        var result = await _userManager.CreateAsync(user, request.Password);
+        var result = await _authenticationService.RegisterUserAsync(request);
         if (!result.Succeeded) return BadRequest(result.Errors);
 
-        return Ok();
+        return Ok("User created succesfully");
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteUser(string id)
+    public async Task<IActionResult> Delete(string id)
     {
-        var user = await DbContext.Users.FindAsync(id);
-        if (user == null) return NotFound();
-        
-        DbContext.Users.Remove(user);
-        await DbContext.SaveChangesAsync();
+        var result = await _userService.DeleteUserAsync(id);
+        if (!result.Succeeded) return BadRequest(result.Errors);
 
-        return Ok();
+        return Ok("User deleted succesfully");
     }
-}
-
-public class LoginRequest
-{
-    public string Email { get; set; }
-    public string Password { get; set; }
-}
-
-public class RegisterRequest
-{
-    public string Email { get; set; }
-    public string Password { get; set; }
-
-    // TODO: Add custom user properties
 }

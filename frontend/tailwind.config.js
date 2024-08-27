@@ -18,8 +18,7 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        inter: ["Inter", "sans-serif"],
-        interVariable: ["InterVariable", "sans-serif"],
+        promptLight: ["Prompt", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

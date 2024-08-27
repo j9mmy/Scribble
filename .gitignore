@@ -26,3 +26,5 @@ dist-ssr
 # IDE
 bin
 obj
+backend/app.db-shm
+backend/app.db-wal
